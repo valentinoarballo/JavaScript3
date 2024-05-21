@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="px-12 bg-gray-200">
+    <nav class="mb-12 flex justify-end w-full bg-yellow-500 rounded-br-lg rounded-bl-lg p-5">
+        <button class="p-2 border rounded-lg hover:bg-yellow-600" onclick="listarItemsCarrito()">Carrito</button>
+    </nav>
+    <h1 class="text-6xl m-5 font-semibold">FakeStore</h1>
+    <div class="m-5 flex gap-4">
+        <button class="p-2 border rounded-lg hover:bg-yellow-500" onclick="CrearItem()">Agregar un producto</button>
+        <button class="p-2 border rounded-lg hover:bg-yellow-500" onclick="listarItems()">Listar productos</button>
+    </div>
+
+    <div class="flex gap-8 m-5 flex-wrap wrap" id="contenedorItems">
+    </div>
+
+    <script src="js/index.js"></script>
+</body>
+</html>
