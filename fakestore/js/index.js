@@ -4,14 +4,27 @@ const obtenerProductos = async () => {
         let response = await fetch("https://fakestoreapi.com/products")
         let json = await response.json()
 
-        json.map(producto => {
-            listarItems(producto)
-        })
+
+        listarItems(json)
 
     } catch (error) {
         console.error("Error buscando los datos en la api: ", error)
     }
 }
+
+const obtenerCategorias = async () => {
+    try {
+        let response = await fetch("https://fakestoreapi.com/products/categories")
+        let json = await response.json()
+
+
+        listarCategorias(json)
+
+    } catch (error) {
+        console.error("Error buscando los datos en la api: ", error)
+    }
+}
+
 
 // Función para obtener los items del Carrito del localStorage
 const obtenerItemsCarritoLocalStorage = () => {
@@ -28,18 +41,42 @@ const obtenerItemsCarritoLocalStorage = () => {
 // Función para guardar los items del Carrito en el localStorage
 const guardarItemsCarritoLocalStorage = (items) => {
     localStorage.setItem('carrito', JSON.stringify(items));
-    // itemAgregadoAlCarrito();
+    itemAgregadoAlCarrito();
 };
 
-// Función para agregar un nuevo item al Carrito y guardarlo en el localStorage
+// Función para actualizar la notificación del carrito
+const itemAgregadoAlCarrito = () => {
+    let carrito = document.getElementById("carritoSideBar");
+    let items = obtenerItemsCarritoLocalStorage();
+    let cantidadItems = items.length;
+
+    let carritoNotificacion = `
+    <span
+        class="inline-flex items-center justify-center w-3 h-3 p-3 ms-3 text-sm font-medium text-blue-800 bg-blue-100 rounded-full ">
+        ${cantidadItems}
+    </span>
+    `;
+
+    let notificacionExistente = carrito.querySelector('.carrito-notificacion');
+    if (notificacionExistente) {
+        notificacionExistente.innerHTML = carritoNotificacion;
+    } else {
+        let nuevaNotificacion = document.createElement('span');
+        nuevaNotificacion.classList.add('carrito-notificacion');
+        nuevaNotificacion.innerHTML = carritoNotificacion;
+        carrito.appendChild(nuevaNotificacion);
+    }
+
+    if (notificacionExistente && cantidadItems == 0) {
+        carrito.removeChild(carrito.lastChild)
+    }
+};
+
 const agregarItemAlCarrito = (nuevoItem) => {
-    // Obtener el array actual de items del carrito
     const itemsCarrito = obtenerItemsCarritoLocalStorage();
 
-    // Agregar el nuevo item al array
     itemsCarrito.push(nuevoItem);
 
-    // Guardar el array actualizado en el localStorage
     guardarItemsCarritoLocalStorage(itemsCarrito);
 };
 
@@ -49,7 +86,12 @@ const mostrarInfoProducto = (item) => {
 
     if (titulo.innerText) {
         titulo.innerHTML = `
-        <button onclick="location.reload()">volver</button>
+            <button onclick="obtenerProductos()" class="flex px-4 py-2 items-center aling-middle hover:bg-gray-300 rounded hover:scale-105">
+                <svg width="32" height="32" fill="currentColor" class="bi bi-arrow-left pt-1" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8"/>
+                </svg>    
+                volver
+            </button>
         `
     }
 
@@ -106,7 +148,9 @@ const mostrarInfoProducto = (item) => {
     contenedor.innerHTML = innerHTMLProducto;
 };
 
-const listarItems = async (item) => {
+const listarItems = async (items) => {
+
+    let contenedor = document.getElementById("contenedorItems")
 
     let titulo = document.getElementById("subtitulo")
 
@@ -114,32 +158,38 @@ const listarItems = async (item) => {
         titulo.innerText = "Productos"
     }
 
-    const itemString = JSON.stringify(item).replace(/'/g, "\\'").replace(/"/g, '&quot;');
+    while (contenedor.firstChild) {
+        contenedor.removeChild(contenedor.firstChild)
+    }
 
-    // Obtener el número de estrellas llenas basado en el rating
-    const fullStars = Math.round(item.rating.rate);
+    items.map(item => {
 
-    const filledStar = `
+        const itemString = JSON.stringify(item).replace(/'/g, "\\'").replace(/"/g, '&quot;');
+
+        // Obtener el número de estrellas llenas basado en el rating
+        const fullStars = Math.round(item.rating.rate);
+
+        const filledStar = `
         <svg width="16" height="16" fill="currentColor" class="bi text-yellow-500 bi-star-fill" viewBox="0 0 16 16">
             <path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"/>
         </svg>
     `;
-    const emptyStar = `
+        const emptyStar = `
         <svg width="16" height="16" fill="currentColor" class="bi text-yellow-500 bi-star" viewBox="0 0 16 16">
             <path d="M2.866 14.85c-.078.444.36.791.746.593l4.39-2.256 4.389 2.256c.386.198.824-.149.746-.592l-.83-4.73 3.522-3.356c.33-.314.16-.888-.282-.95l-4.898-.696L8.465.792a.513.513 0 0 0-.927 0L5.354 5.12l-4.898.696c-.441.062-.612.636-.283.95l3.523 3.356-.83 4.73zm4.905-2.767-3.686 1.894.694-3.957a.56.56 0 0 0-.163-.505L1.71 6.745l4.052-.576a.53.53 0 0 0 .393-.288L8 2.223l1.847 3.658a.53.53 0 0 0 .393.288l4.052.575-2.906 2.77a.56.56 0 0 0-.163.506l.694 3.957-3.686-1.894a.5.5 0 0 0-.461 0z"/>
         </svg>
     `;
 
-    let starsHTML = '<div class="flex items-center">';
-    for (let i = 0; i < fullStars; i++) {
-        starsHTML += filledStar;
-    }
-    for (let i = fullStars; i < 5; i++) {
-        starsHTML += emptyStar;
-    }
-    starsHTML += ` <span class="text-gray-500 ml-2">(${item.rating.count} reviews)</span></div>`;
+        let starsHTML = '<div class="flex items-center">';
+        for (let i = 0; i < fullStars; i++) {
+            starsHTML += filledStar;
+        }
+        for (let i = fullStars; i < 5; i++) {
+            starsHTML += emptyStar;
+        }
+        starsHTML += ` <span class="text-gray-500 ml-2">(${item.rating.count} reviews)</span></div>`;
 
-    let innerHTMLProducto = `
+        let innerHTMLProducto = `
         <div class="w-full flex px-6 bg-white border border-gray-200 rounded-lg shadow">
             <button onclick="mostrarInfoProducto(${itemString})" class="flex justify-center">
                 <img class="rounded-t-lg w-56 h-auto max-h-56 object-contain p-4 hover:scale-105" src="${item.image}" alt="imagen de ${item.title}" />
@@ -158,13 +208,12 @@ const listarItems = async (item) => {
         </div>
     `;
 
-    let contenedor = document.getElementById("contenedorItems");
+        let tarjeta = document.createElement("div");
+        tarjeta.style.width = "w-full";
+        tarjeta.innerHTML = innerHTMLProducto;
 
-    let tarjeta = document.createElement("div");
-    tarjeta.style.width = "w-full";
-    tarjeta.innerHTML = innerHTMLProducto;
-
-    contenedor.appendChild(tarjeta);
+        contenedor.appendChild(tarjeta);
+    })
 };
 
 // Función asíncrona para listar todos los items en el carrito
@@ -232,6 +281,31 @@ const listarItemsCarrito = async () => {
         let tarjeta = document.createElement("div");
         tarjeta.style.width = "w-full";
         tarjeta.innerHTML = innerHTMLProducto;
+        contenedor.appendChild(tarjeta);
+    })
+};
+
+
+const listarCategorias = async (categorias) => {
+
+    let contenedor = document.getElementById("categoriaUl")
+
+    while (contenedor.firstChild) {
+        contenedor.removeChild(contenedor.firstChild)
+    }
+
+    categorias.map(categoria => {
+
+        const categoriaString = JSON.stringify(categoria).replace(/'/g, "\\'").replace(/"/g, '&quot;');
+
+        let innerHTMLProducto = `
+            <li></li>
+        `;
+
+        let tarjeta = document.createElement("div");
+        tarjeta.style.width = "w-full";
+        tarjeta.innerHTML = innerHTMLProducto;
+
         contenedor.appendChild(tarjeta);
     })
 };
